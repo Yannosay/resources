@@ -1,0 +1,2 @@
+import{d as t,n as e}from"../../../_/nitro.mjs";import{g as r,t as o}from"../../../_/users.mjs";import"node:buffer";import"node:timers";import"node:events";import"node:process";import"cloudflare:workers";import"node:fs/promises";import"node:path";import"../../../_/user.mjs";const s=t(async t=>{try{const s=await e(t);if(!s)return{authenticated:!1};const a=await r(t,s.username);return!a||a.disabled?{authenticated:!1}:{authenticated:!0,user:o(a)}}catch{return{authenticated:!1}}});export{s as default};
+//# sourceMappingURL=session.get.mjs.map

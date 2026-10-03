@@ -1,0 +1,2 @@
+import{d as e,a as t}from"../../../_/nitro.mjs";import{l as o}from"../../../_/invites.mjs";import"node:buffer";import"node:timers";import"node:events";import"node:process";import"cloudflare:workers";import"node:fs/promises";import"node:path";const r=e(async e=>{await t(e);return{invites:(await o(e)).map(e=>({hash:e.hash,role:e.role,createdBy:e.createdBy,createdAt:e.createdAt,expiresAt:e.expiresAt,usesRemaining:e.usesRemaining,totalUses:e.totalUses,note:e.note,consumedBy:e.consumedBy,revoked:e.revoked}))}});export{r as default};
+//# sourceMappingURL=index.get.mjs.map

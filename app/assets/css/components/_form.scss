@@ -1,0 +1,131 @@
+@mixin form-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 0.5rem;
+}
+
+@mixin form-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--fg);
+  background: rgba(245, 245, 246, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: var(--fg-dim);
+  }
+
+  &:hover {
+    border-color: var(--line-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--fg-muted);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin form-textarea {
+  @include form-input;
+  resize: vertical;
+  min-height: 8rem;
+  line-height: 1.6;
+}
+
+@mixin form-select {
+  @include form-input;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.4rem;
+  background-color: #141416;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-opacity='0.5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  background-size: 14px 14px;
+  color: #f5f5f6;
+}
+
+@mixin form-file {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: rgba(245, 245, 246, 0.55);
+  background: rgba(245, 245, 246, 0.02);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+
+  &::-webkit-file-upload-button,
+  &::file-selector-button {
+    margin-right: 0.85rem;
+    padding: 0.45rem 0.9rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #0a0a0b;
+    background-color: #f5f5f6;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  &::-webkit-file-upload-button:hover,
+  &::file-selector-button:hover {
+    background-color: #ffffff;
+  }
+
+  &:hover {
+    border-color: rgba(245, 245, 246, 0.24);
+    background: rgba(245, 245, 246, 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #f5f5f6;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin form-help {
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+
+@mixin form-error {
+  font-size: 0.82rem;
+  color: var(--danger);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+@mixin form-success {
+  font-size: 0.82rem;
+  color: var(--success);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}

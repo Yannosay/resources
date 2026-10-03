@@ -1,0 +1,2 @@
+import{u as e}from"./fetch-chUAQ9nr.mjs";import{l as s,v as t}from"../virtual/entry.mjs";function useTeamSession(){const a=s(["cookie"]),{data:n,pending:u,refresh:i}=e("/api/auth/session",{key:"team-session",headers:a,default:()=>({authenticated:!1})},"$fIsKqBUX44"),o=t.computed(()=>!0===n.value?.authenticated),r=t.computed(()=>n.value?.user??null);return{session:n,authenticated:o,user:r,isAdmin:t.computed(()=>"admin"===r.value?.role),pending:u,refresh:i}}export{useTeamSession as u};
+//# sourceMappingURL=useTeamSession-CD2tG84g.mjs.map

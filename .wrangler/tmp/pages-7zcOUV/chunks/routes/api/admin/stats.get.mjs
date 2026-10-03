@@ -1,0 +1,2 @@
+import{d as o,i as t}from"../../../_/nitro.mjs";import"node:buffer";import"node:timers";import"node:events";import"node:process";import"cloudflare:workers";import"node:fs/promises";import"node:path";const e=o(async o=>{const e=t(o),s=await e.list("resource:");let r=0,i=0,n=0;for(const o of s){const t=await e.get(o);t&&(r+=Number(t.size)||0,i+=Number(t.downloads)||0,"public"===t.visibility&&(n+=1))}return{totalResources:s.length,publicResources:n,totalBytes:r,totalDownloads:i}});export{e as default};
+//# sourceMappingURL=stats.get.mjs.map

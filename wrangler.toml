@@ -1,0 +1,13 @@
+name = "yannosay-resources"
+compatibility_date = "2026-05-30"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[r2_buckets]]
+binding = "RESOURCES_BUCKET"
+bucket_name = "yannosay-resources"
+
+[[kv_namespaces]]
+binding = "RESOURCES_KV"
+id = "59a64e2203e14619ae701d2d51961b7d"
+preview_id = "3d5db8079212403ba0843f59762dd67f"
