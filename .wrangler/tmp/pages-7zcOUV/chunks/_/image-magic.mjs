@@ -1,2 +1,0 @@
-const e=[{mime:"image/png",bytes:[137,80,78,71,13,10,26,10]},{mime:"image/jpeg",bytes:[255,216,255]},{mime:"image/gif",bytes:[71,73,70,56]}];function detectImageMime(t){for(const i of e){if(t.length<i.bytes.length)continue;let e=!0;for(let m=0;m<i.bytes.length;m+=1)if(t[m]!==i.bytes[m]){e=!1;break}if(e)return i.mime}return t.length>=12&&82===t[0]&&73===t[1]&&70===t[2]&&70===t[3]&&87===t[8]&&69===t[9]&&66===t[10]&&80===t[11]?"image/webp":null}export{detectImageMime as d};
-//# sourceMappingURL=image-magic.mjs.map
