@@ -155,7 +155,35 @@ interface CloudflareKVNamespace {
   get(key: string, options?: { type: 'json' }): Promise<unknown>
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>
   delete(key: string): Promise<void>
-  list(options: { prefix: string; limit?: number }): Promise<{ keys: { name: string }[] }>
+  list(options: { prefix: string; limit?: number; cursor?: string }): Promise<{
+    keys: { name: string }[]
+    list_complete: boolean
+    cursor?: string
+  }>
+}
+
+const INDEXED_PREFIXES = ['resource:', 'user:', 'invite:'] as const
+const INDEX_KEY_PREFIX = '__index:'
+const INDEX_MAX_AGE_MS = 60 * 60 * 1000
+const INDEX_REBUILD_COOLDOWN_MS = 5 * 60 * 1000
+const rebuildAttempts = new Map<string, number>()
+
+interface KeyIndex {
+  keys: string[]
+  builtAt: number
+}
+
+function indexedPrefixOf(key: string): string | null {
+  return INDEXED_PREFIXES.find(prefix => key.startsWith(prefix)) ?? null
+}
+
+function isKeyIndex(value: unknown): value is KeyIndex {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<KeyIndex>
+  return Array.isArray(candidate.keys)
+    && candidate.keys.every(key => typeof key === 'string')
+    && typeof candidate.builtAt === 'number'
+    && Number.isFinite(candidate.builtAt)
 }
 
 const LOCAL_KV_DIR = join(process.cwd(), '.data', 'kv')
@@ -206,6 +234,59 @@ function createLocalKV(): KVBackend {
 }
 
 function createCloudflareKV(namespace: CloudflareKVNamespace): KVBackend {
+  async function listAll(prefix: string): Promise<string[]> {
+    const names: string[] = []
+    let cursor: string | undefined
+    do {
+      const page = await namespace.list({ prefix, limit: 1000, cursor })
+      for (const entry of page.keys) names.push(entry.name)
+      cursor = page.list_complete ? undefined : page.cursor
+    } while (cursor)
+    return names
+  }
+
+  async function readIndex(prefix: string): Promise<KeyIndex | null> {
+    const value = await namespace.get(INDEX_KEY_PREFIX + prefix, { type: 'json' })
+    return isKeyIndex(value) ? value : null
+  }
+
+  async function writeIndex(prefix: string, index: KeyIndex): Promise<void> {
+    try {
+      await namespace.put(INDEX_KEY_PREFIX + prefix, JSON.stringify(index))
+    } catch (error) {
+      console.error(`Failed to write KV key index for "${prefix}"`, error)
+    }
+  }
+
+  async function rebuildIndex(prefix: string, previous: KeyIndex | null): Promise<string[]> {
+    const listed = await listAll(prefix)
+    const listedSet = new Set(listed)
+    const keys = [...listed]
+    for (const key of previous?.keys ?? []) {
+      if (listedSet.has(key)) continue
+      if (await namespace.get(key) !== null) keys.push(key)
+    }
+    await writeIndex(prefix, { keys, builtAt: Date.now() })
+    return keys
+  }
+
+  async function updateIndex(key: string, present: boolean): Promise<void> {
+    const prefix = indexedPrefixOf(key)
+    if (!prefix) return
+    try {
+      const index = await readIndex(prefix)
+      if (!index) {
+        await rebuildIndex(prefix, { keys: present ? [key] : [], builtAt: 0 })
+        return
+      }
+      if (index.keys.includes(key) === present) return
+      const keys = present ? [...index.keys, key] : index.keys.filter(existing => existing !== key)
+      await writeIndex(prefix, { keys, builtAt: index.builtAt })
+    } catch (error) {
+      console.error(`Failed to update KV key index for "${key}"`, error)
+    }
+  }
+
   return {
     async get<T>(key: string) {
       const value = await namespace.get(key, { type: 'json' })
@@ -213,13 +294,33 @@ function createCloudflareKV(namespace: CloudflareKVNamespace): KVBackend {
     },
     async set<T>(key: string, value: T, options?: { ttl?: number }) {
       await namespace.put(key, JSON.stringify(value), options?.ttl ? { expirationTtl: options.ttl } : undefined)
+      await updateIndex(key, true)
     },
     async delete(key) {
       await namespace.delete(key)
+      await updateIndex(key, false)
     },
     async list(prefix) {
-      const result = await namespace.list({ prefix, limit: 1000 })
-      return result.keys.map(entry => entry.name)
+      if (!INDEXED_PREFIXES.includes(prefix as typeof INDEXED_PREFIXES[number])) {
+        return await listAll(prefix)
+      }
+      const index = await readIndex(prefix)
+      const now = Date.now()
+      if (index && now - index.builtAt < INDEX_MAX_AGE_MS) {
+        return [...index.keys]
+      }
+      const lastAttempt = rebuildAttempts.get(prefix)
+      if (index && lastAttempt !== undefined && now - lastAttempt < INDEX_REBUILD_COOLDOWN_MS) {
+        return [...index.keys]
+      }
+      rebuildAttempts.set(prefix, now)
+      try {
+        return await rebuildIndex(prefix, index)
+      } catch (error) {
+        if (!index) throw error
+        console.error(`Failed to rebuild KV key index for "${prefix}", serving stale index`, error)
+        return [...index.keys]
+      }
     }
   }
 }

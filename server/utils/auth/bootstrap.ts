@@ -46,24 +46,6 @@ export function getBootstrapToken(event: H3Event): string | null {
   return null
 }
 
-export function getBootstrapTokenDebug(event: H3Event): {
-  cloudflareLength: number
-  processLength: number
-  runtimeLength: number
-  effectiveLength: number
-} {
-  const cf = readCloudflareEnv(event)
-  const proc = readProcessEnv()
-  const runtime = readRuntimeConfig(event)
-  const effective = getBootstrapToken(event)
-  return {
-    cloudflareLength: cf?.length ?? 0,
-    processLength: proc?.length ?? 0,
-    runtimeLength: runtime?.length ?? 0,
-    effectiveLength: effective?.length ?? 0
-  }
-}
-
 export async function isBootstrapAvailable(event: H3Event): Promise<boolean> {
   if (!getBootstrapToken(event)) return false
   const kv = getKV(event)
